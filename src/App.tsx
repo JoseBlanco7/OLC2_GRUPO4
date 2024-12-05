@@ -9,8 +9,8 @@ function App() {
   const [isDropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isReportsDropdownOpen, setReportsDropdownOpen] =
     useState<boolean>(false);
-  const [consoleOutput, setConsoleOutput] = useState<string>(""); // Nuevo estado para la consola de salida
-
+  const [consoleOutput] = useState<string>(""); // Nuevo estado para la consola de salida
+//, setConsoleOutput
   // Refs con tipos específicos
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lineNumbersRef = useRef<HTMLDivElement | null>(null);
