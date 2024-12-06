@@ -24,7 +24,6 @@ function App() {
 
   // Manejadores de eventos
   const handleButtonClick = (): void => {
-    const code = text;
     // mensaje que se realizo la ejecución del código con swal como notificacion a la derecha
     Swal.fire({
       position: 'top-end', // Posición en la esquina superior derecha
