@@ -7,9 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "compile": "peggy --format es -o src/lib/parser/peg-parser.js Gramatica/Gramatica.pegjs"
   },
   "dependencies": {
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@uiw/react-codemirror": "^4.23.6",
     "bootstrap": "^5.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -25,6 +28,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.12.0",
+    "peggy": "^4.2.0",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.15.0",
     "vite": "^6.0.1"

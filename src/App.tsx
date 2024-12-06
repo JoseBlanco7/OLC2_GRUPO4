@@ -1,73 +1,118 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
 import usacLogo from "./assets/usac.svg";
+import parseInput from "./lib/parser"; // Importar el parser
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+// Tipo para el resultado del parser
+type ParserError = {
+  name: string;
+  location: {
+    start: {
+      line: number;
+      column: number;
+      offset: number;
+    };
+    end: {
+      line: number;
+      column: number;
+      offset: number;
+    };
+  };
+  expected?: { type: string; text?: string; description?: string }[];
+  found?: string | null;
+  message: string;
+};
+
 function App() {
-  const [messageType, setMessageType] = useState(""); // Estado para manejar el tipo de mensaje
-  const [text, setText] = useState<string>(""); // Estado para manejar el contenido del editor
+  const [editorText, setEditorText] = useState<string>(""); // Texto del editor de código
+  const [consoleOutput, setConsoleOutput] = useState<string>(""); // Salida de la consola
+  const [messageType, setMessageType] = useState<string>(""); // Tipo de mensaje (success o danger)
   const [isDropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isReportsDropdownOpen, setReportsDropdownOpen] =
     useState<boolean>(false);
-  const [consoleOutput, setConsoleOutput] = useState<string>(""); // Nuevo estado para la consola de salida
-  //, setConsoleOutput
-  // Refs con tipos específicos
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const lineNumbersRef = useRef<HTMLDivElement | null>(null);
 
-  // Obtener los números de línea para el editor
-  const getLineNumbers = (): string => {
-    const lines = text.split("\n").length;
-    return Array.from({ length: lines }, (_, i) => i + 1).join("\n");
-  };
-
-  // Manejadores de eventos
-  const handleButtonClick = (): void => {
-    // mensaje que se realizo la ejecución del código con swal como notificacion a la derecha
-    Swal.fire({
-      position: 'top-end', // Posición en la esquina superior derecha
-      icon: 'success', // Tipo de notificación (success, error, warning, info)
-      title: '¡Ejecución exitosa!',
-      text: 'El código se ejecutó correctamente.',
-      showConfirmButton: false, // Oculta el botón de confirmación
-      timer: 3000, // Tiempo en milisegundos antes de que se cierre (3 segundos)
-      toast: true, // Estilo de notificación flotante
-    });
+  // Función para ejecutar el parser
+  const handleParse = () => {
     try {
-      // alert(code);
-      setMessageType("success");
-      setConsoleOutput("El contenido es una PEG." );
+      const result: ParserError | string = parseInput(editorText); // Ejecutar el parser con el contenido del editor
+
+      // Verificar si el resultado contiene un error
+      if (typeof result !== "string" && (result as ParserError).name === "SyntaxError") {
+        const error = result as ParserError; // Refinamiento de tipo
+        const { line, column } = error.location.start; // Línea y columna del error
+        const expected = error.expected
+          ?.map((exp: { type: string; text?: string; description?: string }) => exp.text || exp.description)
+          .join(", ") || "algo inesperado";
+        const found = error.found || "nada";
+
+        setMessageType("danger");
+        setConsoleOutput(
+          `❌ LA ENTRADA NO ES ACEPTADA.\nError encontrado:\n` +
+          `  - Esperado: ${expected}\n` +
+          `  - Encontrado: ${found}\n` +
+          `  - Línea: ${line}, Columna: ${column}\n` +
+          `Mensaje del parser: ${error.message}`
+        );
+        Swal.fire({
+          position: "top-end",
+          icon: "error",
+          title: "¡Error en la ejecución!",
+          text: "No se pudo parsear el código.",
+          showConfirmButton: false,
+          timer: 3000,
+          toast: true,
+        });
+      } else {
+        setMessageType("success");
+        setConsoleOutput(`✅ Resultado del parser:\n${JSON.stringify(result, null, 2)}`);
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "¡Ejecución exitosa!",
+          text: "El código se ejecutó correctamente.",
+          showConfirmButton: false,
+          timer: 3000,
+          toast: true,
+        });
+      }
     } catch (error) {
-      console.error(error);
-      setMessageType("danger");
-      setConsoleOutput("El contenido no es una PEG.");
+      // Manejo de errores inesperados
+      if (error instanceof Error) {
+        setConsoleOutput(`❌ Error inesperado: ${error.message}`);
+      } else {
+        setConsoleOutput("❌ Error inesperado.");
+      }
+      Swal.fire({
+        position: "top-end",
+        icon: "error",
+        title: "¡Error en la ejecución!",
+        text: "No se pudo parsear el código.",
+        showConfirmButton: false,
+        timer: 3000,
+        toast: true,
+      });
     }
   };
 
-  const toggleDropdown = (): void => {
+  const toggleDropdown = () => {
     setReportsDropdownOpen(false);
     setDropdownOpen(!isDropdownOpen);
   };
 
-  const toggleReportsDropdown = (): void => {
+  const toggleReportsDropdown = () => {
     setDropdownOpen(false);
     setReportsDropdownOpen(!isReportsDropdownOpen);
   };
 
-  const handleScroll = (): void => {
-    if (lineNumbersRef.current && textareaRef.current) {
-      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
-    }
-  };
-
   return (
-    <div className="min-vh-100 ">
+    <div className="min-vh-100">
       {/* Barra de navegación */}
       <nav className="navbar navbar-expand-lg navbar-light shadow w-90 rounded">
         <div className="container-fluid">
-          {" "}
-          {/* Elimina el espacio por defecto */}
           <a
             className="navbar-brand"
             href="https://portal.ingenieria.usac.edu.gt/"
@@ -92,10 +137,7 @@ function App() {
                 </div>
               )}
             </div>
-            <button
-              className="btn btn-primary me-3"
-              onClick={handleButtonClick}
-            >
+            <button className="btn btn-primary me-3" onClick={handleParse}>
               Ejecutar
             </button>
             <div className="dropdown">
@@ -125,33 +167,14 @@ function App() {
             <div className="d-flex justify-content-center p-3 fw-bold">
               <h5>Editor de texto</h5>
             </div>
-            <div className="position-relative">
-              <div
-                ref={lineNumbersRef}
-                className="bg-light border text-end px-2 py-2 position-absolute top-0 start-0 h-100"
-                style={{
-                  width: "40px",
-                  zIndex: 1,
-                  overflow: "hidden",
-                  color: "#6c757d",
-                }}
-              >
-                <pre className="m-0">{getLineNumbers()}</pre>
-              </div>
-              <textarea
-                ref={textareaRef}
-                className="form-control"
-                style={{
-                  paddingLeft: "50px",
-                  minHeight: "400px",
-                  resize: "none",
-                  border : "2px solid #ced4da"
-                }}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onScroll={handleScroll}
-              ></textarea>
-            </div>
+            <CodeMirror
+              value={editorText}
+              extensions={[javascript()]} // Extensión para soporte de JavaScript
+              onChange={(value: string) => setEditorText(value)} // Reactividad del editor
+              height="400px"
+              theme="light"
+              className="border"
+            />
           </div>
 
           {/* Columna derecha - Consola de salida */}
@@ -160,14 +183,17 @@ function App() {
               <h5>Consola de Salida</h5>
             </div>
             <div
-              className={`bg-light text-${messageType} border rounded p-3 d-flex align-items-center justify-content-center`}
-              style={{ minHeight: "400px", overflowY: "auto", fontSize: "24px", border : "2px solid #ced4da" }}
+              className={`bg-light text-${messageType} border rounded p-3`}
+              style={{
+                minHeight: "400px",
+                overflowY: "auto",
+                fontSize: "18px",
+              }}
             >
               <pre
-                className="m-0 text-center w-100"
+                className="m-0"
                 style={{
-                  whiteSpace: "pre-wrap", // Permite que el texto se ajuste automáticamente al ancho del contenedor
-                  overflow: "hidden", // Elimina barras de desplazamiento adicionales
+                  whiteSpace: "pre-wrap",
                 }}
               >
                 {consoleOutput}
