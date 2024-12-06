@@ -5,12 +5,13 @@ import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
+  const [messageType, setMessageType] = useState(""); // Estado para manejar el tipo de mensaje
   const [text, setText] = useState<string>(""); // Estado para manejar el contenido del editor
   const [isDropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isReportsDropdownOpen, setReportsDropdownOpen] =
     useState<boolean>(false);
-  const [consoleOutput] = useState<string>(""); // Nuevo estado para la consola de salida
-//, setConsoleOutput
+  const [consoleOutput, setConsoleOutput] = useState<string>(""); // Nuevo estado para la consola de salida
+  //, setConsoleOutput
   // Refs con tipos específicos
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lineNumbersRef = useRef<HTMLDivElement | null>(null);
@@ -23,12 +24,26 @@ function App() {
 
   // Manejadores de eventos
   const handleButtonClick = (): void => {
+    const code = text;
+    // mensaje que se realizo la ejecución del código con swal como notificacion a la derecha
     Swal.fire({
-      title: "¡Acción ejecutada!",
-      text: "El contenido se ha enviado.",
-      icon: "success",
-      confirmButtonText: "Aceptar",
+      position: 'top-end', // Posición en la esquina superior derecha
+      icon: 'success', // Tipo de notificación (success, error, warning, info)
+      title: '¡Ejecución exitosa!',
+      text: 'El código se ejecutó correctamente.',
+      showConfirmButton: false, // Oculta el botón de confirmación
+      timer: 3000, // Tiempo en milisegundos antes de que se cierre (3 segundos)
+      toast: true, // Estilo de notificación flotante
     });
+    try {
+      // alert(code);
+      setMessageType("success");
+      setConsoleOutput("El contenido es una PEG." );
+    } catch (error) {
+      console.error(error);
+      setMessageType("danger");
+      setConsoleOutput("El contenido no es una PEG.");
+    }
   };
 
   const toggleDropdown = (): void => {
@@ -50,8 +65,8 @@ function App() {
   return (
     <div className="min-vh-100 ">
       {/* Barra de navegación */}
-      <nav className="navbar navbar-expand-lg navbar-light shadow w-90">
-        <div className="container-fluid p-0">
+      <nav className="navbar navbar-expand-lg navbar-light shadow w-90 rounded">
+        <div className="container-fluid">
           {" "}
           {/* Elimina el espacio por defecto */}
           <a
@@ -108,7 +123,7 @@ function App() {
         <div className="row">
           {/* Columna izquierda - Editor de texto */}
           <div className="col-md-6">
-            <div className="d-flex justify-content-center">
+            <div className="d-flex justify-content-center p-3 fw-bold">
               <h5>Editor de texto</h5>
             </div>
             <div className="position-relative">
@@ -129,8 +144,9 @@ function App() {
                 className="form-control"
                 style={{
                   paddingLeft: "50px",
-                  minHeight: "200px",
+                  minHeight: "400px",
                   resize: "none",
+                  border : "2px solid #ced4da"
                 }}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -141,14 +157,22 @@ function App() {
 
           {/* Columna derecha - Consola de salida */}
           <div className="col-md-6">
-            <div className="d-flex justify-content-center">
+            <div className="d-flex justify-content-center p-3 fw-bold">
               <h5>Consola de Salida</h5>
             </div>
             <div
-              className="bg-dark text-success border rounded p-3"
-              style={{ minHeight: "200px", overflowY: "auto" }}
+              className={`bg-light text-${messageType} border rounded p-3 d-flex align-items-center justify-content-center`}
+              style={{ minHeight: "400px", overflowY: "auto", fontSize: "24px", border : "2px solid #ced4da" }}
             >
-              <pre className="m-0">{consoleOutput}</pre>
+              <pre
+                className="m-0 text-center w-100"
+                style={{
+                  whiteSpace: "pre-wrap", // Permite que el texto se ajuste automáticamente al ancho del contenedor
+                  overflow: "hidden", // Elimina barras de desplazamiento adicionales
+                }}
+              >
+                {consoleOutput}
+              </pre>
             </div>
           </div>
         </div>
