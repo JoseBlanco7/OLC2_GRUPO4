@@ -1,5 +1,5 @@
-import { useState } from "react";
 import Swal from "sweetalert2";
+import { useState, useRef } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import usacLogo from "./assets/usac.svg";
@@ -28,34 +28,53 @@ type ParserError = {
 };
 
 function App() {
-  const [editorText, setEditorText] = useState<string>(""); // Texto del editor de código
+  const [text, setText] = useState<string>(""); // Estado para manejar el contenido del editor
   const [consoleOutput, setConsoleOutput] = useState<string>(""); // Salida de la consola
   const [messageType, setMessageType] = useState<string>(""); // Tipo de mensaje (success o danger)
   const [isDropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isReportsDropdownOpen, setReportsDropdownOpen] =
     useState<boolean>(false);
-
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const lineNumbersRef = useRef<HTMLDivElement | null>(null);
+  // Obtener los números de línea para el editor
+  const getLineNumbers = (): string => {
+    const lines = text.split("\n").length;
+    return Array.from({ length: lines }, (_, i) => i + 1).join("\n");
+  };
+  const handleScroll = (): void => {
+    if (lineNumbersRef.current && textareaRef.current) {
+      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  };
   // Función para ejecutar el parser
-  const handleParse = () => {
-    try {
-      const result: ParserError | string = parseInput(editorText); // Ejecutar el parser con el contenido del editor
+  const handleParse = (inputText?: string) => {
+    const textToParse = inputText || text; // Usa el argumento si está disponible, de lo contrario, usa el estado actual
 
-      // Verificar si el resultado contiene un error
-      if (typeof result !== "string" && (result as ParserError).name === "SyntaxError") {
-        const error = result as ParserError; // Refinamiento de tipo
-        const { line, column } = error.location.start; // Línea y columna del error
-        const expected = error.expected
-          ?.map((exp: { type: string; text?: string; description?: string }) => exp.text || exp.description)
-          .join(", ") || "algo inesperado";
+    try {
+      const result: ParserError | string = parseInput(textToParse);
+
+      if (
+        typeof result !== "string" &&
+        (result as ParserError).name === "SyntaxError"
+      ) {
+        const error = result as ParserError;
+        const { line, column } = error.location.start;
+        const expected =
+          error.expected
+            ?.map(
+              (exp: { type: string; text?: string; description?: string }) =>
+                exp.text || exp.description
+            )
+            .join(", ") || "algo inesperado";
         const found = error.found || "nada";
 
         setMessageType("danger");
         setConsoleOutput(
           `❌ LA ENTRADA NO ES ACEPTADA.\nError encontrado:\n` +
-          `  - Esperado: ${expected}\n` +
-          `  - Encontrado: ${found}\n` +
-          `  - Línea: ${line}, Columna: ${column}\n` +
-          `Mensaje del parser: ${error.message}`
+            `  - Esperado: ${expected}\n` +
+            `  - Encontrado: ${found}\n` +
+            `  - Línea: ${line}, Columna: ${column}\n` +
+            `Mensaje del parser: ${error.message}`
         );
         Swal.fire({
           position: "top-end",
@@ -68,7 +87,9 @@ function App() {
         });
       } else {
         setMessageType("success");
-        setConsoleOutput(`✅ Resultado del parser:\n${JSON.stringify(result, null, 2)}`);
+        setConsoleOutput(
+          `✅ Resultado del parser:\n${JSON.stringify(result, null, 2)}`
+        );
         Swal.fire({
           position: "top-end",
           icon: "success",
@@ -80,7 +101,6 @@ function App() {
         });
       }
     } catch (error) {
-      // Manejo de errores inesperados
       if (error instanceof Error) {
         setConsoleOutput(`❌ Error inesperado: ${error.message}`);
       } else {
@@ -137,9 +157,13 @@ function App() {
                 </div>
               )}
             </div>
-            <button className="btn btn-primary me-3" onClick={handleParse}>
+            <button
+              className="btn btn-primary me-3"
+              onClick={() => handleParse()}
+            >
               Ejecutar
             </button>
+
             <div className="dropdown">
               <button
                 className="btn btn-secondary dropdown-toggle"
@@ -167,14 +191,37 @@ function App() {
             <div className="d-flex justify-content-center p-3 fw-bold">
               <h5>Editor de texto</h5>
             </div>
-            <CodeMirror
-              value={editorText}
-              extensions={[javascript()]} // Extensión para soporte de JavaScript
-              onChange={(value: string) => setEditorText(value)} // Reactividad del editor
-              height="400px"
-              theme="light"
-              className="border"
-            />
+            <div className="position-relative">
+              <div
+                ref={lineNumbersRef}
+                className="bg-light border text-end px-2 py-2 position-absolute top-0 start-0 h-100"
+                style={{
+                  width: "40px",
+                  zIndex: 1,
+                  overflow: "hidden",
+                  color: "#6c757d",
+                }}
+              >
+                <pre className="m-0">{getLineNumbers()}</pre>
+              </div>
+              <textarea
+                ref={textareaRef}
+                className="form-control"
+                style={{
+                  paddingLeft: "50px",
+                  minHeight: "400px",
+                  resize: "none",
+                  border: "2px solid #ced4da",
+                }}
+                value={text}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  setText(newValue); // Actualizar el estado del texto
+                  handleParse(newValue); // Llamar a la función para ejecutar automáticamente
+                }}
+                onScroll={handleScroll}
+              ></textarea>
+            </div>
           </div>
 
           {/* Columna derecha - Consola de salida */}
@@ -183,17 +230,17 @@ function App() {
               <h5>Consola de Salida</h5>
             </div>
             <div
-              className={`bg-light text-${messageType} border rounded p-3`}
+              className={`bg-light text-${messageType} border rounded p-3 d-flex align-items-center justify-content-center`}
               style={{
                 minHeight: "400px",
-                overflowY: "auto",
-                fontSize: "18px",
+                overflow: "hidden", // Asegúrate de que no haya barras de scroll en el contenedor
               }}
             >
               <pre
-                className="m-0"
+                className="m-0 text-center w-100"
                 style={{
-                  whiteSpace: "pre-wrap",
+                  whiteSpace: "pre-wrap", // Permite que el texto se ajuste automáticamente al ancho del contenedor
+                  overflow: "hidden", // Elimina barras de desplazamiento adicionales
                 }}
               >
                 {consoleOutput}
