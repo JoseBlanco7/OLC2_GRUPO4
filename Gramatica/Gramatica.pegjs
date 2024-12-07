@@ -57,7 +57,7 @@ conjunto
 
 // Tokens
 Identificador "identificador"
-  = [_a-z][_a-z0-9]* { return text(); }  
+  = [a-zA-Z][_a-zA-Z0-9]* { return text(); }  
 
 _ "whitespace or comments"
   = (whitespace / comentario)*

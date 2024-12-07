@@ -197,8 +197,8 @@ function peg$parse(input, options) {
   var peg$r1 = /^[^']/;
   var peg$r2 = /^[^\-\]]/;
   var peg$r3 = /^[^\]]/;
-  var peg$r4 = /^[_a-z]/;
-  var peg$r5 = /^[_a-z0-9]/;
+  var peg$r4 = /^[a-zA-Z]/;
+  var peg$r5 = /^[_a-zA-Z0-9]/;
   var peg$r6 = /^[ \t\r]/;
   var peg$r7 = /^[^\n]/;
 
@@ -222,8 +222,8 @@ function peg$parse(input, options) {
   var peg$e17 = peg$literalExpectation("-", false);
   var peg$e18 = peg$classExpectation(["]"], true, false);
   var peg$e19 = peg$otherExpectation("identificador");
-  var peg$e20 = peg$classExpectation(["_", ["a", "z"]], false, false);
-  var peg$e21 = peg$classExpectation(["_", ["a", "z"], ["0", "9"]], false, false);
+  var peg$e20 = peg$classExpectation([["a", "z"], ["A", "Z"]], false, false);
+  var peg$e21 = peg$classExpectation(["_", ["a", "z"], ["A", "Z"], ["0", "9"]], false, false);
   var peg$e22 = peg$otherExpectation("whitespace or comments");
   var peg$e23 = peg$classExpectation([" ", "\t", "\r"], false, false);
   var peg$e24 = peg$literalExpectation("//", false);
@@ -253,7 +253,7 @@ function peg$parse(input, options) {
   var peg$f10 = function(char) {
     return { tipo: "caracter", valor: char };
   };
-  var peg$f11 = function() { return text(); };
+  var peg$f11 = function() { return text(); };
   var peg$currPos = options.peg$currPos | 0;
   var peg$savedPos = peg$currPos;
   var peg$posDetailsCache = [{ line: 1, column: 1 }];
