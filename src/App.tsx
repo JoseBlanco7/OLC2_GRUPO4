@@ -28,9 +28,9 @@ type ParserError = {
 };
 
 function App() {
-  const [text, setText] = useState<string>(""); // Estado para manejar el contenido del editor
+  const [text, setText] = useState<string>(""); 
   const [consoleOutput, setConsoleOutput] = useState<string>(""); // Salida de la consola
-  const [messageType, setMessageType] = useState<string>(""); // Tipo de mensaje (success o danger)
+  const [messageType, setMessageType] = useState<string>(""); 
   const [isDropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isReportsDropdownOpen, setReportsDropdownOpen] =
     useState<boolean>(false);
@@ -48,7 +48,7 @@ function App() {
   };
   // Función para ejecutar el parser
   const handleParse = (inputText?: string) => {
-    const textToParse = inputText || text; // Usa el argumento si está disponible, de lo contrario, usa el estado actual
+    const textToParse = inputText || text; 
 
     try {
       const result: ParserError | string = parseInput(textToParse);
@@ -216,8 +216,8 @@ function App() {
                 value={text}
                 onChange={(e) => {
                   const newValue = e.target.value;
-                  setText(newValue); // Actualizar el estado del texto
-                  handleParse(newValue); // Llamar a la función para ejecutar automáticamente
+                  setText(newValue); 
+                  handleParse(newValue); 
                 }}
                 onScroll={handleScroll}
               ></textarea>
@@ -233,15 +233,15 @@ function App() {
               className={`bg-light text-${messageType} border rounded p-3 d-flex align-items-center justify-content-center`}
               style={{
                 minHeight: "400px",
-                overflow: "hidden", // Asegúrate de que no haya barras de scroll en el contenedor
+                overflow: "hidden",
               }}
             >
               <pre
                 className="m-0 text-center w-100"
                 style={{
                   fontSize: "37",
-                  whiteSpace: "pre-wrap", // Permite que el texto se ajuste automáticamente al ancho del contenedor
-                  overflow: "hidden", // Elimina barras de desplazamiento adicionales
+                  whiteSpace: "pre-wrap", 
+                  overflow: "hidden", 
                 }}
               >
                 {consoleOutput}
