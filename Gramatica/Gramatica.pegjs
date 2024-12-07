@@ -5,7 +5,7 @@ Inicio
   }
 
 Regla
-  = head:Identificador "\n" _ "=" _ expr:Expresion _ ";"? {
+  = head:Identificador _ "\n" _ "=" _ expr:Expresion _ ";"? {
     return { nombre: head, expresion: expr };
   }
 

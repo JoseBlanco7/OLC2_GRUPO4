@@ -1,7 +1,7 @@
 import Swal from "sweetalert2";
 import { useState, useRef } from "react";
-import CodeMirror from "@uiw/react-codemirror";
-import { javascript } from "@codemirror/lang-javascript";
+//import CodeMirror from "@uiw/react-codemirror";
+//import { javascript } from "@codemirror/lang-javascript";
 import usacLogo from "./assets/usac.svg";
 import parseInput from "./lib/parser"; // Importar el parser
 import "./App.css";
@@ -239,6 +239,7 @@ function App() {
               <pre
                 className="m-0 text-center w-100"
                 style={{
+                  fontSize: "37",
                   whiteSpace: "pre-wrap", // Permite que el texto se ajuste automáticamente al ancho del contenedor
                   overflow: "hidden", // Elimina barras de desplazamiento adicionales
                 }}
