@@ -1,11 +1,12 @@
 Inicio
-  = _ head:Regla tail:(salto+ _ @Regla)*  {
+  = _ head:Regla tail:(salto+ _ @Regla)* _ ";"? salto* {
     console.log("Gramática reconocida correctamente");
     return "Gramática reconocida correctamente";
   }
 
+
 Regla
-  = head:Identificador _ "\n" _ "=" _ expr:Expresion _ ";"? {
+  = head:Identificador "\n" _ "=" _ expr:Expresion _ ";"? {
     return { nombre: head, expresion: expr };
   }
 
@@ -57,7 +58,7 @@ conjunto
 
 // Tokens
 Identificador "identificador"
-  = [a-zA-Z][_a-zA-Z0-9]* { return text(); }  
+  = [a-zA-Z][_a-zA-Z0-9]* { return text(); } 
 
 _ "whitespace or comments"
   = (whitespace / comentario)*
@@ -70,4 +71,4 @@ comentario
   / "/" [^]* "*/"
 
 salto
-  = "\n"
+  = "\n" _ ";"? _
