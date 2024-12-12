@@ -44,9 +44,9 @@ Repeticion
         valor: grp
       };
     }
-  / grp:Grupo _ "*"   { return { tipo: "repeticion", modo: "cero_o_mas", valor: grp }; }
-  / grp:Grupo _ "+"   { return { tipo: "repeticion", modo: "una_o_mas", valor: grp }; }
-  / grp:Grupo _ "?"  { return { tipo: "repeticion", modo: "opcional", valor: grp }; }
+  / grp:Grupo _ "*" " "*   { return { tipo: "repeticion", modo: "cero_o_mas", valor: grp }; }
+  / grp:Grupo _ "+" " "*   { return { tipo: "repeticion", modo: "una_o_mas", valor: grp }; }
+  / grp:Grupo _ "?" " "*  { return { tipo: "repeticion", modo: "opcional", valor: grp }; }
   / Grupo 
 
 
@@ -62,7 +62,7 @@ Elemento
   / TextoDeExpresion
   / AsersionNegativa
   / AsersionPositiva
-  / Basica 
+  / " "* Basica 
   / Rango
   / Punto
   / FinDeEntrada
@@ -75,11 +75,11 @@ Elemento
 
 Basica
   = Identificador _?
-  / Literal _?
+  /  Literal _?
 
 Literal
-  = "\"" chars:[^"]* "\""  { return { tipo: "literal", valor: chars.join("") }; }
-  / "'" chars:[^']* "'"   { return { tipo: "literal", valor: chars.join("") }; }
+  =  "\"" chars:[^"]* "\""  { return { tipo: "literal", valor: chars.join("") }; }
+  /  "'" chars:[^']* "'"   { return { tipo: "literal", valor: chars.join("") }; }
 
 Rango
   = "[" chars:(conguion / conjunto)+ "]"   {
