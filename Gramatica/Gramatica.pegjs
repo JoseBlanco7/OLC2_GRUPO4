@@ -52,7 +52,7 @@ Repeticion
 
 
 Grupo
-  = "(" _ alt:Alternativa _ ")" _ { return { tipo: "grupo", valor: alt }; }
+  = "(" _ alt:Alternativa _ ")"  { return { tipo: "grupo", valor: alt }; }
   / "(" _  _ Elemento? _  _ Grupo _ _ Elemento? _  _  ")" _ 
   / Elemento 
 

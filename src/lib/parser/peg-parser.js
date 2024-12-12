@@ -1154,7 +1154,6 @@ function peg$parse(input, options) {
           if (peg$silentFails === 0) { peg$fail(peg$e14); }
         }
         if (s5 !== peg$FAILED) {
-          s6 = peg$parse_();
           peg$savedPos = s0;
           s0 = peg$f9(s3);
         } else {
