@@ -6,7 +6,7 @@ Inicio
 
 
 Regla
-  = head:Identificador _ etiqueta:nombre_de_regla? _ "\n" _ "=" _ expr:Expresion _ ";"? {
+  = head:Identificador _ etiqueta:nombre_de_regla? _ "\n"+ _ "=" _ expr:(Expresion)* _ ";"? {
     return { nombre: head, etiqueta: etiqueta || null, expresion: expr };
   }
 
@@ -20,7 +20,7 @@ Expresion
   = Alternativa
 
 Alternativa
-  = Secuencia ((" " / salto _)* "/" _ Secuencia)* _ ";"?
+  = Secuencia ((" " / salto _)* "/" _ Secuencia)* _ 
 
 Secuencia
   = Repeticion+
@@ -35,7 +35,7 @@ Repeticion
   = grp:Grupo _ "|" _ conteo:RangoConteo _ "|" _ ";"? {
       return { tipo: "repeticion", modo: "conteo", especificacion: conteo, valor: grp };
     }
-  /  grp:Grupo _ "|" _ rango:RangoMinMax _ ("," _ delimitador:Grupo)? _ "|" _ ";"? {
+  /  grp:Grupo _ "|" _ rango:RangoMinMax _ ("," _ delimitador:Grupo)? _ "|" _  {
       return {
         tipo: "repeticion",
         modo: "rango",
@@ -70,15 +70,15 @@ Elemento
 
 
 Basica
-  = Identificador _ ";"?
-  / Literal _ ";"?
+  = Identificador _ 
+  / Literal _ 
 
 Literal
   = "\"" chars:[^"]* "\"" { return { tipo: "literal", valor: chars.join("") }; }
   / "'" chars:[^']* "'" { return { tipo: "literal", valor: chars.join("") }; }
 
 Rango
-  = "[" chars:(conguion / conjunto)+ "]" _ ";"? {
+  = "[" chars:(conguion / conjunto)+ "]" _  {
     return { tipo: "rango", valor: chars };
   }
 
@@ -93,27 +93,27 @@ FinDeEntrada
   }
 
 AsersionPositiva
-  = "&" _ expr:Elemento _ ";"? {
+  = "&" _ expr:Elemento _  {
     return { tipo: "asersion_positiva", valor: expr };
   }
   
 AsersionNegativa
-  = "!" _ expr:Elemento _ ";"? {
+  = "!" _ expr:Elemento _  {
     return { tipo: "asersion_negativa", valor: expr };
   }
 
 TextoDeExpresion
-  = "$" _ expr:Elemento _ ";"? {
+  = "$" _ expr:Elemento _  {
     return { tipo: "texto", valor: expr };
   }
   
 Etiqueta
-  = etiqueta:Identificador _ ":" _ expr:Elemento _ ";"? {
+  = etiqueta:Identificador _ ":" _ expr:Elemento _  {
     return { tipo: "etiqueta", etiqueta: etiqueta, valor: expr };
   }
 
 Pluck
-  = "@" _ etiqueta:(Identificador _ ":")? expr:Elemento _ ";"? {
+  = "@" _ etiqueta:(Identificador _ ":")? expr:Elemento _  {
     return {
       tipo: "pluck",
       etiqueta: etiqueta ? etiqueta[0] : null,
@@ -159,11 +159,3 @@ comentario
 
 salto
   = "\n" _ ";"? _
-  
-//ERRORES
-
-/*
-1. Varios enters luego de un identificador de produccion
-2. Si viene un ; antes de terminar la produccion, 
-
-*/
