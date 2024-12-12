@@ -1,12 +1,13 @@
+
 Inicio
-  = _ head:Regla tail:(salto+ _ @Regla)* _ ";"? salto* {
+  = _ head:Regla  tail:(salto* _ @Regla)* _ ";"? salto*   {
     console.log("Gramática reconocida correctamente");
     return "Gramática reconocida correctamente";
   }
 
 
 Regla
-  = head:Identificador _ etiqueta:nombre_de_regla? _ "\n"+ _ "=" _ expr:(Expresion)* _ ";"? {
+  =  head:Identificador _ etiqueta:nombre_de_regla? _ salto2* _ "=" _ expr:Expresion _ ";"?  {
     return { nombre: head, etiqueta: etiqueta || null, expresion: expr };
   }
 
@@ -26,16 +27,16 @@ Secuencia
   = Repeticion+
   
  RangoMinMax
-  = min:(Numero / Identificador)? ".." max:(Numero / Identificador)? {
+  = min:(Numero / Identificador)? ".."? max:(Numero / Identificador)? {
       return { tipo: "rango", min: min || 0, max: max || Infinity };
     }
     
  
 Repeticion
-  = grp:Grupo _ "|" _ conteo:RangoConteo _ "|" _ ";"? {
+  = grp:Grupo _ "|" _ conteo:RangoConteo _ "|" _  {
       return { tipo: "repeticion", modo: "conteo", especificacion: conteo, valor: grp };
     }
-  /  grp:Grupo _ "|" _ rango:RangoMinMax _ ("," _ delimitador:Grupo)? _ "|" _  {
+  /  grp:Grupo _ "|" _ rango:RangoMinMax _  ("," _ delimitador:Grupo*)? _ "|" _ ";"? {
       return {
         tipo: "repeticion",
         modo: "rango",
@@ -44,15 +45,16 @@ Repeticion
         valor: grp
       };
     }
-  / grp:Grupo _ "*" _ ";"? { return { tipo: "repeticion", modo: "cero_o_mas", valor: grp }; }
-  / grp:Grupo _ "+" _ ";"? { return { tipo: "repeticion", modo: "una_o_mas", valor: grp }; }
-  / grp:Grupo _ "?" _ ";"? { return { tipo: "repeticion", modo: "opcional", valor: grp }; }
+  / grp:Grupo _ "*" _  { return { tipo: "repeticion", modo: "cero_o_mas", valor: grp }; }
+  / grp:Grupo _ "+" _  { return { tipo: "repeticion", modo: "una_o_mas", valor: grp }; }
+  / grp:Grupo _ "?" _  { return { tipo: "repeticion", modo: "opcional", valor: grp }; }
   / Grupo
 
 
 
 Grupo
   = "(" _ alt:Alternativa _ ")" _ { return { tipo: "grupo", valor: alt }; }
+  / "(" _  _ Elemento? _  _ Grupo _  _ Elemento? _  _  ")" _ 
   / Elemento
 
 Elemento
@@ -65,13 +67,14 @@ Elemento
   / Rango
   / Punto
   / FinDeEntrada
+  
 
 
 
 
 Basica
-  = Identificador _ 
-  / Literal _ 
+  = Identificador _ ?
+  / Literal _ ?
 
 Literal
   = "\"" chars:[^"]* "\"" { return { tipo: "literal", valor: chars.join("") }; }
@@ -83,12 +86,12 @@ Rango
   }
 
   Punto
-  = "." {
+  = "." _ {
     return { tipo: "punto", descripcion: "cualquier caracter, incluyendo espacios" };
   }
 
 FinDeEntrada
-  = "!." {
+  = "!." _ {
     return { tipo: "fin_de_entrada", descripcion: "final de entrada de texto" };
   }
 
@@ -103,14 +106,16 @@ AsersionNegativa
   }
 
 TextoDeExpresion
-  = "$" _ expr:Elemento _  {
+  = "$" _ expr:Grupo _  {
     return { tipo: "texto", valor: expr };
   }
   
 Etiqueta
-  = etiqueta:Identificador _ ":" _ expr:Elemento _  {
+  = etiqueta:Identificador _ ":" _ expr:Grupo _  {
     return { tipo: "etiqueta", etiqueta: etiqueta, valor: expr };
   }
+  
+
 
 Pluck
   = "@" _ etiqueta:(Identificador _ ":")? expr:Elemento _  {
@@ -144,7 +149,7 @@ Numero "número"
   = [0-9]+ { return parseInt(text(), 10); }
 
 Identificador "identificador"
-  = [a-zA-Z][_a-zA-Z0-9]* { return text(); }
+  =[_a-zA-Z][_a-zA-Z0-9]* { return text(); }
 
 
 _ "whitespace or comments"
@@ -154,8 +159,12 @@ whitespace
   = [ \t\r]+
 
 comentario
-  = "//" [^\n]* salto?
+  = "//" [^\n]* salto+
   / "/*" (!"*/" .)* "*/" 
 
 salto
-  = "\n" _ ";"? _
+  = _ "\n" _ ";"? _
+  
+  
+salto2
+= _ "\n" _
