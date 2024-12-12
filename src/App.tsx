@@ -1,7 +1,5 @@
 import Swal from "sweetalert2";
 import { useState, useRef } from "react";
-//import CodeMirror from "@uiw/react-codemirror";
-//import { javascript } from "@codemirror/lang-javascript";
 import usacLogo from "./assets/usac.svg";
 import parseInput from "./lib/parser"; // Importar el parser
 import "./App.css";
@@ -34,18 +32,22 @@ function App() {
   const [isDropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isReportsDropdownOpen, setReportsDropdownOpen] =
     useState<boolean>(false);
+  const [timeoutId, setTimeoutId] = useState<number | null>(null); // Estado para el temporizador
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lineNumbersRef = useRef<HTMLDivElement | null>(null);
+
   // Obtener los números de línea para el editor
   const getLineNumbers = (): string => {
     const lines = text.split("\n").length;
     return Array.from({ length: lines }, (_, i) => i + 1).join("\n");
   };
+
   const handleScroll = (): void => {
     if (lineNumbersRef.current && textareaRef.current) {
       lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
     }
   };
+
   // Función para ejecutar el parser
   const handleParse = (inputText?: string) => {
     const textToParse = inputText || text; 
@@ -126,6 +128,21 @@ function App() {
   const toggleReportsDropdown = () => {
     setDropdownOpen(false);
     setReportsDropdownOpen(!isReportsDropdownOpen);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setText(newValue);
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+    const newTimeoutId = window.setTimeout(() => {
+      handleParse(newValue);
+    }, 1000);
+
+    setTimeoutId(newTimeoutId);
   };
 
   return (
@@ -214,11 +231,7 @@ function App() {
                   border: "2px solid #ced4da",
                 }}
                 value={text}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  setText(newValue); 
-                  handleParse(newValue); 
-                }}
+                onChange={handleChange}
                 onScroll={handleScroll}
               ></textarea>
             </div>
