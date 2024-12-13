@@ -5,10 +5,12 @@ Inicio
   }
 
 
+
 Regla
-  =  head:Identificador _ etiqueta:nombre_de_regla? _ salto2* _ "=" _ expr:Expresion _ ";"?      {
-    return { nombre: head, etiqueta: etiqueta || null, expresion: expr };
-  }
+  = head:Identificador _ etiqueta:nombre_de_regla? _ salto2* _ (":" / "=") _ salto* expr:Expresion salto* _ ";"?{
+      return { nombre: head, etiqueta: etiqueta || null, expresion: expr };
+    }
+
 
 nombre_de_regla "Etiqueta de regla"
   = _ "\"" etiqueta:[^\"]* "\"" {
@@ -20,17 +22,19 @@ Expresion
   = Alternativa
 
 Alternativa
-  = Secuencia ((" " / salto _)* "/" _ Secuencia )* _ 
+  = Secuencia (salto* "/" _ Secuencia salto*)* _
+
 
 Secuencia
-  = Repeticion+
+  = salto* Repeticion+ salto*
+
   
- RangoMinMax
+RangoMinMax
   = min:(Numero / Identificador)? ".."? max:(Numero / Identificador)? {
       return { tipo: "rango", min: min || 0, max: max || Infinity };
     }
     
- 
+
 Repeticion
   = grp:Grupo _ "|" _ conteo:RangoConteo _ "|" _  {
       return { tipo: "repeticion", modo: "conteo", especificacion: conteo, valor: grp };
@@ -52,7 +56,8 @@ Repeticion
 
 
 Grupo
-  = "(" _ alt:Alternativa _ ")"  { return { tipo: "grupo", valor: alt }; }
+  = "(" salto* _ alt:Alternativa? salto* _ ")" { return { tipo: "grupo", valor: alt || null }; }
+
   / "(" _  _ Elemento? _  _ Grupo _ _ Elemento? _  _  ")" _ 
   / Elemento 
 
@@ -66,11 +71,6 @@ Elemento
   / Rango
   / Punto
   / FinDeEntrada
-  
-  
-  
-
-
 
 
 Basica
